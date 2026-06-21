@@ -1,0 +1,15 @@
+# Core ML/DL
+torch>=2.0.0
+torchvision>=0.15.0
+opencv-python>=4.8.0.0
+Pillow>=10.0.0
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Model Export
+onnx>=1.14.0
+onnxruntime>=1.16.0
+
+# Web Interface
+Flask>=3.0.0
+gunicorn>=21.0.0  # For production deployment

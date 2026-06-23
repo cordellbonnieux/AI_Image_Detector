@@ -30,8 +30,8 @@ venv/
 requirements.txt  # Optional: Ignore if you prefer to track it
 
 # Data (large datasets)
-data/raw/
-data/processed/
+#data/raw/
+#data/processed/
 *.zip
 *.tar.gz
 

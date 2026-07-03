@@ -1,9 +1,13 @@
 import torch.nn.functional as F
 from torch import nn
+from src.config import NUM_CLASSES
 
 class AIDetectorCNN(nn.Module):
-    def __init__(self, in_channels, num_classes=2):
+    def __init__(self, in_channels, num_classes=NUM_CLASSES):
         """
+        BUG BROKEN SCRIPT
+
+
         Layers of the convolutional neural network.
         Parameters:
             in_channels: int: The number of channels in the input image. For MNIST, this is 1 (grayscale images).

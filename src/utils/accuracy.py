@@ -2,6 +2,7 @@ import torch
 
 def check_accuracy(loader, model, device):
     """
+    BUG the program hangs when it gets here
     Checks the accuracy of the model on the given dataset loader.
 
     Parameters:
@@ -10,10 +11,10 @@ def check_accuracy(loader, model, device):
         model: nn.Module
             The neural network model.
     """
-    if loader.dataset.train:
-        print("Checking accuracy on training data")
-    else:
-        print("Checking accuracy on test data")
+    #if loader.dataset.train:
+    #    print("Checking accuracy on training data")
+    #else:
+    #    print("Checking accuracy on test data")
 
     num_correct = 0
     num_samples = 0
@@ -33,5 +34,3 @@ def check_accuracy(loader, model, device):
         # Calculate accuracy
         accuracy = float(num_correct) / float(num_samples) * 100
         print(f"Got {num_correct}/{num_samples} with accuracy {accuracy:.2f}%")
-    
-    model.train()

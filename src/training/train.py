@@ -1,4 +1,5 @@
 import torch
+import os
 from torch import optim
 from tqdm import tqdm
 from torch.utils.data import DataLoader
@@ -17,8 +18,10 @@ train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=
 test_dataset = datasets.ImageFolder(root=DATA_TEST_PATH, transform=image_transform)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
+print
+
 # init network
-model = AIDetectorCNN(in_channels=1).to(DEVICE)
+model = AIDetectorCNN().to(DEVICE)
 
 # define loss and optimizer
 criterion = torch.nn.CrossEntropyLoss()
@@ -33,7 +36,7 @@ for epoch in range(EPOCHS):
         targets = targets.to(DEVICE)
 
         # Forward pass: compute the model output
-        scores = model(data)
+        scores = model(data) # BUG data? is not the right shape
         loss = criterion(scores, targets)
 
         # Backward pass: compute the gradients

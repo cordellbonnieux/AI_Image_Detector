@@ -1,8 +1,8 @@
 import torch
 
-DATA_TEST_PATH = "data/raw/test/"
-DATA_TRAIN_PATH = "data/raw/train/"
-CHECKPOINT_DIR = "checkpoints/"
+DATA_TEST_PATH = "./data/raw/test"
+DATA_TRAIN_PATH = "./data/raw/train"
+CHECKPOINT_DIR = "./checkpoints"
 
 BATCH_SIZE = 64
 LEARNING_RATE = 0.001

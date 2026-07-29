@@ -6,26 +6,26 @@ from torch.utils.data import DataLoader
 from torchvision import datasets
 from src.models.ai_detector import AIDetectorCNN
 from src.utils.accuracy import check_accuracy
-from src.utils.preprocess import image_transform
+from src.utils.preprocess import train_transform, test_transform
 from src.config import CHECKPOINT_DIR, DEVICE, LEARNING_RATE, BATCH_SIZE, EPOCHS, DATA_TEST_PATH, DATA_TRAIN_PATH
 
 
 # Load training data
-train_dataset = datasets.ImageFolder(root=DATA_TRAIN_PATH, transform=image_transform)
+train_dataset = datasets.ImageFolder(root=DATA_TRAIN_PATH, transform=train_transform)
 train_loader = DataLoader(dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
 # Load test data
-test_dataset = datasets.ImageFolder(root=DATA_TEST_PATH, transform=image_transform)
+test_dataset = datasets.ImageFolder(root=DATA_TEST_PATH, transform=test_transform)
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=True)
-
-print
 
 # init network
 model = AIDetectorCNN().to(DEVICE)
 
 # define loss and optimizer
 criterion = torch.nn.CrossEntropyLoss()
-optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
+optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE, weight_decay=1e-4)
+
+scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5)
 
 # train the network
 for epoch in range(EPOCHS):
@@ -36,20 +36,22 @@ for epoch in range(EPOCHS):
         targets = targets.to(DEVICE)
 
         # Forward pass: compute the model output
-        scores = model(data) # BUG data? is not the right shape
+        scores = model(data)
         loss = criterion(scores, targets)
 
         # Backward pass: compute the gradients
         optimizer.zero_grad()
         loss.backward()
 
+        scheduler.step(loss.item())
+
         # Optimization step: update the model parameters
         optimizer.step()
 
-# save model
-os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-torch.save(model.state_dict(), os.path.join(CHECKPOINT_DIR, "ai_detector.pth"))
-print(f"model saved to {CHECKPOINT_DIR}/ai_detector.pth")
+    # save model
+    os.makedirs(CHECKPOINT_DIR, exist_ok=True)
+    torch.save(model.state_dict(), os.path.join(CHECKPOINT_DIR, "ai_detector.pth"))
+    print(f"model saved to {CHECKPOINT_DIR}/ai_detector.pth")
 
 # check accuracy
 check_accuracy(train_loader, model, DEVICE)

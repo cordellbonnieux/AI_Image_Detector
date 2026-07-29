@@ -4,17 +4,11 @@ import torch
 import os
 from PIL import Image
 from src.models.ai_detector import AIDetectorCNN
-from src.utils.preprocess import image_transform
+from src.utils.preprocess import test_transform
 from src.config import CHECKPOINT_DIR, DEVICE, NUM_CLASSES, NUM_CHANNELS
 
 class AIDetectorPredictor:
     def __init__(self, model_path=None):
-        """
-        Initialize the predictor with a trained model.
-        
-        Args:
-            model_path: Path to the model checkpoint. If None, uses default path.
-        """
         self.device = DEVICE
         
         # Initialize model
@@ -35,22 +29,13 @@ class AIDetectorPredictor:
         self.classes = ["AI Generated", "Not AI Generated"]
     
     def predict_image(self, image_path):
-        """
-        Predict whether a single image is AI generated or not.
-        
-        Args:
-            image_path: Path to the image file
-            
-        Returns:
-            tuple: (predicted_class, confidence, probabilities)
-        """
         # Load and preprocess the image
         if not os.path.exists(image_path):
             raise FileNotFoundError(f"Image not found at {image_path}")
         
         # Open image and apply transforms
         image = Image.open(image_path).convert('RGB')
-        image_tensor = image_transform(image).unsqueeze(0)  # Add batch dimension
+        image_tensor = test_transform(image).unsqueeze(0)  # Add batch dimension
         image_tensor = image_tensor.to(self.device)
         
         # Predict
@@ -65,15 +50,6 @@ class AIDetectorPredictor:
         return predicted_class, confidence_score, probabilities.cpu().numpy()
     
     def predict_batch(self, image_paths):
-        """
-        Predict for multiple images.
-        
-        Args:
-            image_paths: List of image file paths
-            
-        Returns:
-            List of tuples (predicted_class, confidence, probabilities)
-        """
         results = []
         for image_path in image_paths:
             try:
@@ -85,7 +61,7 @@ class AIDetectorPredictor:
 
 
 def main():
-    """Command-line interface for prediction."""
+    #Command-line interface for prediction.
     import argparse
     
     parser = argparse.ArgumentParser(description="Predict if an image is AI generated")

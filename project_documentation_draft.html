@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Documentation Draft - Group 14 AI Image Detector</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 2rem; }
+    h1, h2, h3, h4 { color: #333; }
+    pre { background: #f4f4f4; padding: 1rem; overflow-x: auto; }
+    code { background: #f4f4f4; padding: 0.2rem 0.4rem; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; }
+    th { background: #eee; }
+  </style>
+</head>
+<body>
+  <h1>Project Documentation Draft for Group 14 - AI Image Detector</h1>
+
+  <h2>1. How-To Guide</h2>
+
+  <h3>Overview</h3>
+  <p>This guide explains how to build, train, and run the AI image detector in this repository. The system uses PyTorch and transfer learning with a pretrained ResNet18 model to classify images as either "AI Generated" or "Not AI Generated." It also includes a Flask web API that accepts image uploads and returns prediction results.</p>
+
+  <h3>Tasks and techniques documented</h3>
+  <ul>
+    <li>Dataset organization using torchvision ImageFolder</li>
+    <li>Preprocessing with PyTorch transforms</li>
+    <li>Fine-tuning a pretrained ResNet18 model</li>
+    <li>Training loop and scheduler usage</li>
+    <li>Evaluation with accuracy checking and confusion matrix plotting</li>
+    <li>Running predictions from a command line script</li>
+    <li>Troubleshooting common setup and runtime issues</li>
+  </ul>
+
+  <h3>Step-by-step instructions</h3>
+  <ol>
+    <li><strong>Activate the virtual environment</strong>
+      <pre>source venv/bin/activate</pre>
+    </li>
+    <li><strong>Install dependencies</strong>
+      <pre>python -m pip install -r requirements.txt</pre>
+      <p>Dependencies include <code>torch</code>, <code>torchvision</code>, <code>Pillow</code>, <code>numpy</code>, <code>Flask</code>, and <code>tqdm</code>.</p>
+    </li>
+    <li><strong>Verify dataset structure</strong>
+      <p>The project expects training data in <code>data/raw/train</code> and test data in <code>data/raw/test</code>. Each directory should contain class subfolders: <code>fake</code> and <code>real</code>.</p>
+      <p>The dataset source is CIFAKE: <a href="https://github.com/jordan-bird/CIFAKE-Real-and-AI-Generated-Synthetic-Images">https://github.com/jordan-bird/CIFAKE-Real-and-AI-Generated-Synthetic-Images</a></p>
+    </li>
+    <li><strong>Understand preprocessing</strong>
+      <p><code>src/utils/preprocess.py</code> defines train and test transforms.</p>
+      <ul>
+        <li>Training images are processed with:</li>
+        <ul>
+          <li><code>RandomResizedCrop(IMAGE_SIZE)</code></li>
+          <li><code>RandomHorizontalFlip()</code></li>
+          <li><code>RandomRotation(10)</code></li>
+          <li><code>ColorJitter(...)</code></li>
+          <li>Normalization with ImageNet mean/std</li>
+        </ul>
+        <li>Test images are resized and center cropped to <code>IMAGE_SIZE = 224</code>.</li>
+      </ul>
+    </li>
+    <li><strong>Inspect the model architecture</strong>
+      <p><code>src/models/ai_detector.py</code> defines <code>AIDetectorCNN</code>. With <code>use_pretrained=True</code>, it loads <code>torchvision.models.resnet18</code>. The final fully connected layer is replaced with <code>nn.Linear(..., num_classes)</code> for binary classification.</p>
+    </li>
+    <li><strong>Train the model</strong>
+      <p>Run <code>python -m src.training.train</code>. The script uses <code>ImageFolder</code>, <code>DataLoader</code>, and <code>CrossEntropyLoss</code>. The training loader uses <code>shuffle=True</code> and the test loader uses <code>shuffle=False</code>. The optimizer is Adam with <code>lr=1e-4</code> and weight decay <code>1e-4</code>. The learning rate scheduler is <code>ReduceLROnPlateau</code>, stepped on average epoch loss.</p>
+    </li>
+    <li><strong>Evaluate the model</strong>
+      <p><code>src/utils/accuracy.py</code> contains <code>check_accuracy(loader, model, device)</code>. It iterates through the loader in evaluation mode and calculates accuracy. After testing, the training script also saves a confusion matrix plot to <code>confusion_matrix.png</code>.</p>
+    </li>
+    <li><strong>Run predictions</strong>
+      <p>Use <code>python -m src.app.predict path/to/image.jpg</code>. <code>src/app/predict.py</code> loads the saved checkpoint from <code>checkpoints/ai_detector.pth</code>. It applies the same test transforms before prediction and prints class and confidence.</p>
+    </li>
+    <li><strong>Web app</strong>
+      <p><code>src/app/app.py</code> provides a Flask web API. Run it with <code>python -m src.app.app</code>. Send a POST request to <code>/predict</code> with a form field named <code>image</code>. The endpoint returns JSON containing the predicted class, confidence, and class probabilities.</p>
+    </li>
+  </ol>
+
+  <h3>Troubleshooting tips</h3>
+  <ul>
+    <li><strong>"ModuleNotFoundError: No module named 'torch'"</strong>
+      <p>Activate your virtual environment and install requirements: <code>source venv/bin/activate && python -m pip install -r requirements.txt</code></p>
+    </li>
+    <li><strong>"RuntimeError: shape mismatch" or image size errors</strong>
+      <p>Ensure <code>IMAGE_SIZE</code> is consistent at <code>224</code> in <code>src/config.py</code>. Ensure training and prediction use the same transforms.</p>
+    </li>
+    <li><strong>"FileNotFoundError: Model checkpoint not found"</strong>
+      <p>Confirm training saved <code>checkpoints/ai_detector.pth</code>. If not, rerun training and verify <code>CHECKPOINT_DIR</code>.</p>
+    </li>
+    <li><strong>Data loader problems</strong>
+      <p>Verify the directory structure for <code>data/raw/train</code> and <code>data/raw/test</code>. Ensure each class folder contains valid image files.</p>
+    </li>
+    <li><strong>Web app failures</strong>
+      <p>Ensure the Flask app is run after the model checkpoint is trained and saved. Validate that the POST request uses the <code>image</code> field and a valid image file.</p>
+    </li>
+  </ul>
+
+  <h3>Known limitations in this project</h3>
+  <ul>
+    <li>No validation split or separate validation set is implemented.</li>
+    <li>No confusion matrix or cross-validation is implemented.</li>
+    <li>Default <code>EPOCHS = 1</code> in <code>src/config.py</code> is too low for reliable training.</li>
+    <li>The Flask app endpoint is incomplete and not currently production-ready.</li>
+  </ul>
+
+  <h2>2. Project Write-Up</h2>
+
+  <h3>System Explanation</h3>
+  <h4>What does the system do?</h4>
+  <p>The system classifies input images as either AI-generated or not, using a binary image classifier built with PyTorch.</p>
+
+  <h4>What AI methods are used?</h4>
+  <ul>
+    <li>Transfer learning with a pretrained ResNet18 model from <code>torchvision</code>.</li>
+    <li>Fine-tuning the final layer for binary classification.</li>
+    <li>Data augmentation via PyTorch image transforms.</li>
+  </ul>
+
+  <h4>AI pipeline description</h4>
+  <ul>
+    <li>Input: image files loaded from <code>data/raw/train</code> and <code>data/raw/test</code>, organized with class subfolders.</li>
+    <li>Preprocessing: images are cropped/resized, augmented, normalized, and converted to tensors.</li>
+    <li>Model: <code>AIDetectorCNN</code> wraps a pretrained ResNet18 and replaces its final classification layer.</li>
+    <li>Output: class prediction and confidence score, currently shown by <code>src/app/predict.py</code>.</li>
+  </ul>
+
+  <h4>Diagrams / architecture</h4>
+  <p>This repository does not currently include explicit diagram files. The model architecture is ResNet18 with the final <code>fc</code> layer changed to output 2 classes.</p>
+
+  <h4>Limitations and mitigation</h4>
+  <ul>
+    <li>Limitation: only overall accuracy is measured, no confusion matrix or class-specific diagnostics.
+      <ul><li>Mitigation: add a validation split and calculate per-class accuracy/confusion matrix in future work.</li></ul>
+    </li>
+    <li>Limitation: default training epochs is only 1.
+      <ul><li>Mitigation: increase <code>EPOCHS</code> and monitor loss and validation performance.</li></ul>
+    </li>
+    <li>Limitation: Flask app is incomplete.
+      <ul><li>Mitigation: complete the endpoint with proper preprocessing and checkpoint loading.</li></ul>
+    </li>
+  </ul>
+
+  <h3>Feature Table</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th>Platform</th>
+        <th>Completeness</th>
+        <th>Code</th>
+        <th>Author(s)</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Image preprocessing and augmentation</td>
+        <td>Local</td>
+        <td>4</td>
+        <td>Python</td>
+        <td>Group 14</td>
+        <td>Uses <code>torchvision.transforms</code>; no dataset cleaning script present</td>
+      </tr>
+      <tr>
+        <td>ResNet18 transfer learning classifier</td>
+        <td>Local</td>
+        <td>4</td>
+        <td>Python</td>
+        <td>Group 14</td>
+        <td>Fine-tunes pretrained model for binary image classification</td>
+      </tr>
+      <tr>
+        <td>Training pipeline with scheduler</td>
+        <td>Local</td>
+        <td>3.5</td>
+        <td>Python</td>
+        <td>Group 14</td>
+        <td>Uses Adam and ReduceLROnPlateau; no validation split yet</td>
+      </tr>
+      <tr>
+        <td>Command-line prediction script</td>
+        <td>Local</td>
+        <td>4</td>
+        <td>Python</td>
+        <td>Group 14</td>
+        <td><code>src/app/predict.py</code> works with saved checkpoint</td>
+      </tr>
+      <tr>
+        <td>Flask prediction endpoint</td>
+        <td>Local</td>
+        <td>3.5</td>
+        <td>Python/Flask</td>
+        <td>Group 14</td>
+        <td>Provides <code>/predict</code> API endpoint returning JSON results</td>
+      </tr>
+      <tr>
+        <td>Project README and requirements</td>
+        <td>Local</td>
+        <td>5</td>
+        <td>Markdown/Python</td>
+        <td>Group 14</td>
+        <td>Includes activation and training instructions</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <h3>External Tools & Libraries</h3>
+  <ul>
+    <li>PyTorch (<code>torch</code>) and Torchvision (<code>torchvision</code>)</li>
+    <li>Pillow (<code>PIL</code>) for image loading</li>
+    <li>Flask for the web app scaffold</li>
+    <li>tqdm for training progress bars</li>
+    <li>numpy for numeric operations</li>
+    <li>onnx / onnxruntime listed in requirements but not visibly used in current code</li>
+  </ul>
+
+  <h4>Open-source code reuse</h4>
+  <ul>
+    <li>Uses the pretrained ResNet18 model from <code>torchvision.models</code>.</li>
+    <li>No other explicit external open-source code is imported in the repository.</li>
+    <li>Cite <code>torchvision</code> and PyTorch if referenced in a report.</li>
+  </ul>
+
+  <h4>Platform dependencies / installation</h4>
+  <ul>
+    <li>Python 3</li>
+    <li>Activate the repository virtual environment: <code>source venv/bin/activate</code></li>
+    <li>Install dependencies from <code>requirements.txt</code></li>
+    <li>Run training: <code>python -m src.training.train</code></li>
+    <li>Run prediction: <code>python -m src.app.predict path/to/image.jpg</code></li>
+    <li>Run the Flask API: <code>python -m src.app.app</code></li>
+  </ul>
+
+  <h3>Code Submission Checklist</h3>
+  <ul>
+    <li>Source code: included under <code>src/</code></li>
+    <li>Config file: <code>src/config.py</code></li>
+    <li>Requirements: <code>requirements.txt</code></li>
+    <li>Run scripts: <code>src/training/train.py</code>, <code>src/app/predict.py</code>, <code>src/app/app.py</code></li>
+    <li>README: <code>README.md</code></li>
+  </ul>
+
+  <h2>3. Missing information / items to complete</h2>
+  <ul>
+    <li>The dataset source is CIFAKE: <a href="https://github.com/jordan-bird/CIFAKE-Real-and-AI-Generated-Synthetic-Images">https://github.com/jordan-bird/CIFAKE-Real-and-AI-Generated-Synthetic-Images</a>, but the cleaning process is not documented in the repository.</li>
+    <li>Actual training results, model accuracy, loss curves, and evaluation metrics are not available from source code alone.</li>
+    <li>No confusion matrix, class-specific performance, or cross-validation code is present.</li>
+    <li>Team author names and contribution breakdown are not available.</li>
+    <li>No screenshots, plots, or terminal outputs are currently available in the repository.</li>
+    <li>No explicit license statement or permission note for posting the guide online is present.</li>
+    <li>The Flask app endpoint is implemented, but actual endpoint testing output is not included in the repository.</li>
+  </ul>
+
+  <h4>Questions / deliverables you should produce</h4>
+  <ul>
+    <li>Describe where the image dataset came from and whether any files were cleaned or removed.</li>
+    <li>Report the final model accuracy and any differences between training and test performance.</li>
+    <li>Add a validation procedure if required by the assignment (validation split or cross-validation).</li>
+    <li>Provide screenshots or terminal output of training, evaluation, and prediction.</li>
+    <li>Provide the final group author list and contribution summary.</li>
+    <li>Add a license/permission statement for SFU to share the guide.</li>
+    <li>Document any external resources or tutorials used for transfer learning or PyTorch.</li>
+    <li>If the Flask app is meant to be part of the submission, complete <code>preprocess_image</code> and document how to run it.</li>
+  </ul>
+
+  <h3>Appendix: Relevant project commands</h3>
+  <ul>
+    <li><code>source venv/bin/activate</code></li>
+    <li><code>python -m pip install -r requirements.txt</code></li>
+    <li><code>python -m src.training.train</code></li>
+    <li><code>python -m src.app.predict path/to/image.jpg</code></li>
+    <li><code>python3 -m py_compile src/training/train.py src/models/ai_detector.py src/utils/accuracy.py src/utils/preprocess.py</code></li>
+  </ul>
+</body>
+</html>

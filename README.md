@@ -16,3 +16,6 @@ python -m src.app.predict path/to/image.jpg -v
 
 ### Multiple images
 python -m src.app.predict image1.jpg image2.jpg image3.jpg
+
+### Flask API
+python -m src.app.app

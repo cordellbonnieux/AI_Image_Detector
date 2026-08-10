@@ -11,8 +11,8 @@ class AIDetectorPredictor:
     def __init__(self, model_path=None):
         self.device = DEVICE
         
-        # Initialize model
-        self.model = AIDetectorCNN(in_channels=NUM_CHANNELS, num_classes=NUM_CLASSES)
+        # Initialize model with the same architecture used during training
+        self.model = AIDetectorCNN(in_channels=NUM_CHANNELS, num_classes=NUM_CLASSES, use_pretrained=True)
         self.model.to(self.device)
         
         # Load trained weights

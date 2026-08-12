@@ -1,24 +1,22 @@
 # Group 14 - AI Image Detector
 
-## using virtual environment: 
+## use virtual environment
 source venv/bin/activate
 
-## train:
+## install dependencies
+python -m pip install -r requirements.txt
+
+## train model
 python -m src.training.train
 
-## Using the predictor:
-
-### Single image
+## predict single image
 python -m src.app.predict path/to/image.jpg
 
-### With verbose output
-python -m src.app.predict path/to/image.jpg -v
-
-### Multiple images
+## predict many images
 python -m src.app.predict image1.jpg image2.jpg image3.jpg
 
-### Flask API
+## start REST API server
 python -m src.app.app
 
-## Evaluate model
+## evaluate model accuracy & generate confusion matrix
 python -m src.utils.evaluate

@@ -53,9 +53,16 @@ Step-by-step instructions
    - The learning rate scheduler is `ReduceLROnPlateau`, stepped on average epoch loss.
 
 7. Evaluate the model
-   - `src/utils/accuracy.py` contains `check_accuracy(loader, model, device)`.
-   - It iterates through the loader in evaluation mode and calculates accuracy.
-   - After testing, the training script also saves a confusion matrix plot to `confusion_matrix.png`.
+   - `src/utils/accuracy.py` contains `check_accuracy(loader, model, device)` which iterates through a data loader in evaluation mode and prints overall accuracy.
+   - There is a small evaluation utility at `src/utils/evaluate.py` that loads a saved checkpoint, runs `check_accuracy` on the test set, and produces a confusion matrix image.
+   - Usage:
+     - Run the evaluator with the default checkpoint:
+       - `python -m src.utils.evaluate`
+     - Specify a different checkpoint or output file:
+       - `python -m src.utils.evaluate --model-path path/to/checkpoint.pth --confusion-path output_confusion.png`
+   - Output:
+     - The script prints the overall test accuracy to stdout.
+     - A confusion matrix PNG is written to `confusion_matrix.png` (or the path given with `--confusion-path`).
 
 8. Run predictions
    - Use `python -m src.app.predict path/to/image.jpg`
@@ -66,6 +73,7 @@ Step-by-step instructions
    - `src/app/app.py` provides a Flask web API.
    - Run it with `python -m src.app.app`.
    - Send a POST request to `/predict` with a form field named `image`.
+    (for example: curl -X POST -F "image=@/full/path/to/image.jpg" http://localhost:5000/predict)
    - The endpoint returns JSON containing the predicted class, confidence, and class probabilities.
 
 Troubleshooting tips
@@ -143,6 +151,7 @@ Project README and requirements | Local | 5 | Markdown/Python | Group 14 | Inclu
 External Tools & Libraries
 ---------------------------
 - PyTorch (`torch`) and Torchvision (`torchvision`)
+- ResNet-18
 - Pillow (`PIL`) for image loading
 - Flask for the web app scaffold
 - tqdm for training progress bars

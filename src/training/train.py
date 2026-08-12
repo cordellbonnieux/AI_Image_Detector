@@ -19,7 +19,7 @@ test_dataset = datasets.ImageFolder(root=DATA_TEST_PATH, transform=test_transfor
 test_loader = DataLoader(dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
 # init network with pretrained transfer learning
-model = AIDetectorCNN(use_pretrained=True).to(DEVICE)
+model = AIDetectorCNN(use_pretrained=True).to(DEVICE) #NOTE switch to False for 4-layer CNN
 
 # define loss and optimizer
 criterion = torch.nn.CrossEntropyLoss()
@@ -55,8 +55,8 @@ for epoch in range(EPOCHS):
 
 # save model
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
-torch.save(model.state_dict(), os.path.join(CHECKPOINT_DIR, "ai_detector.pth"))
-print(f"model saved to {CHECKPOINT_DIR}/ai_detector.pth")
+torch.save(model.state_dict(), os.path.join(CHECKPOINT_DIR, "ai_detector.pth"))  # NOTE if you don't want to overwrite pretrained when using 4-layer model
+print(f"model saved to {CHECKPOINT_DIR}/ai_detector.pth") # NOTE edit these lines
 
 # check accuracy
 print("Checking accuracy on training data...")

@@ -62,3 +62,7 @@ checkpoints/
 checkpoints/*
 data/
 data/*
+data/processed/
+data/raw/
+documentation/
+documentation/*

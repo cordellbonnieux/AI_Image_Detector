@@ -1,4 +1,4 @@
-# Group 14 - AI Image Detector
+# AI Image Detector
 
 ## use virtual environment
 source venv/bin/activate
